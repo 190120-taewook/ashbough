@@ -302,7 +302,7 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
     </div>
     <p class="sub" style="margin:4px 0 6px;font-size:12.5px">직업을 고르면 새로 시작한다. 보라색 칸은 히든 직업이다. 한 번 전직에 성공하면 여기서 바로 고를 수 있다.</p>
     <p class="sub" id="saveNote" style="margin:0 0 14px;font-size:11.5px"></p>
-    <div class="btns"><button class="btn ghost" id="bCont" hidden>이어하기</button></div>
+    <div class="btns"><button class="btn" id="bCont" hidden>이어하기</button><button class="btn ghost" id="bImport">세이브 코드 불러오기</button></div>
     <div class="keys">
       <kbd>WASD</kbd><span>이동</span><kbd>마우스</kbd><span>시점</span>
       <kbd>좌클릭</kbd><span>검 연속 베기</span><kbd>우클릭</kbd><span>방패 막기 (피해 0)</span>
@@ -355,7 +355,7 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
   <div class="btns" style="justify-content:flex-end"><button class="btn ghost" id="netLeave" hidden>방 나가기</button><button class="btn ghost" id="netClose">닫기</button></div>
 </div></div>
 <div class="modal" id="dead" hidden><div class="sheet"><h2>쓰러졌다</h2><p>마지막으로 쉰 축복에서 다시 눈을 뜬다.<br>가진 코인의 10%를 잃었다.</p><button class="btn" id="bRespawn">다시 일어나기</button></div></div>
-<div class="modal" id="pause" hidden><div class="sheet"><h2>잠시 멈춤</h2><p id="pauseSave">진행 상황은 자동 저장된다.</p><div class="btns"><button class="btn ghost" id="bNet">멀티플레이</button><button class="btn ghost" id="bSave">지금 저장</button><button class="btn" id="bResume">계속하기</button><button class="btn ghost" id="bMenu">처음 화면</button></div></div></div>
+<div class="modal" id="pause" hidden><div class="sheet"><h2>잠시 멈춤</h2><p id="pauseSave">진행 상황은 자동 저장된다.</p><div class="btns"><button class="btn ghost" id="bNet">멀티플레이</button><button class="btn ghost" id="bSave">지금 저장</button><button class="btn ghost" id="bExport">세이브 코드 복사</button><button class="btn" id="bResume">계속하기</button><button class="btn ghost" id="bMenu">처음 화면</button></div></div></div>
 <div class="modal" id="win" hidden><div class="sheet"><h2>폐허에 고요가 찾아왔다</h2><p>골렘의 심장석이 식어 간다. 마을은 당분간 평온할 것이다.<br>숲에는 아직 몬스터가 남아 있다. 계속 사냥할 수 있다.</p><button class="btn" id="bWin">계속 모험하기</button></div></div>
 
 <div class="hud" id="touch" hidden>
@@ -3122,8 +3122,8 @@ function updatePlayer(dt){
   p.shieldHitT = Math.max(0, p.shieldHitT - dt);
   if (p.shieldBroken > 0){ p.shieldBroken -= dt; if (p.shieldBroken <= 0){ p.shieldBroken = 0; p.shield = SHIELD_MAX; shield.visible = true; toast('방패를 다시 들었다'); sfx.block(); } }
   else if (!mouseR && p.shieldHitT <= 0) p.shield = Math.min(SHIELD_MAX, p.shield + 10*dt);
-  const noShield = CL().weapon === 'bow' || CL().weapon === 'axe'; if (noShield) shield.visible = false;
-  { const swingPose = p.state === 'atk' || p.state === 'skill'; const tgt = swingPose || CL().weapon === 'axe' ? Math.PI/2 : .12; swordPivot.rotation.x += (tgt - swordPivot.rotation.x)*Math.min(1, dt*(swingPose ? 30 : 8)); }   // upright at rest, along the swing when attacking
+  const noShield = CL().weapon === 'bow' || CL().weapon === 'axe'; if (noShield) shield.visible = false; else if (p.state !== 'skill' && p.shieldBroken <= 0) shield.visible = true;
+  { const swingPose = p.state === 'atk' || p.state === 'skill'; const tgt = Math.PI/2; swordPivot.rotation.x += (tgt - swordPivot.rotation.x)*Math.min(1, dt*(swingPose ? 30 : 8)); }   // upright at rest, along the swing when attacking
   p.blocking = !noShield && mouseR && (p.state === 'idle' || p.state === 'block') && p.shieldBroken <= 0;
   const sk = p.state === 'block' ? 1 : .78; shield.scale.setScalar(shield.scale.x + (sk - shield.scale.x)*Math.min(1, dt*14));
   if (p.blocking && p.state === 'idle') p.state = 'block'; if (!p.blocking && p.state === 'block') p.state = 'idle';
@@ -3138,7 +3138,7 @@ function updatePlayer(dt){
       P.anim.phase += dt * (sprint ? 12 : p.blocking ? 6 : 9.5); mode = p.blocking ? 'block' : 'run';
       p.stepT -= dt; if (p.stepT <= 0){ p.stepT = sprint ? .26 : .34; sfx.step(); }
     } else { p.vel.x = lerp(p.vel.x, 0, Math.min(1, dt*10)); p.vel.z = lerp(p.vel.z, 0, Math.min(1, dt*10)); mode = p.blocking ? 'block' : 'idle'; if (p.blocking) p.face += angDiff(p.face, Math.atan2(camFwd().x, camFwd().z))*Math.min(1, dt*10); }
-    animHumanoid(P, p.riding ? 'ride' : mode, elapsed, dt, {amt: sprint ? 1.25 : p.blocking ? .5 : 1, hammer: CL().weapon === 'axe' && !p.riding});
+    animHumanoid(P, p.riding ? 'ride' : mode, elapsed, dt, {amt: sprint ? 1.25 : p.blocking ? .5 : 1, hammer: (CL().weapon === 'axe' || CL().weapon === 'sword') && !p.riding && !p.blocking});
   } else if (p.state === 'atk'){
     const A = curATK()[p.combo], u = p.t / A.dur;
     const lunge = u > .15 && u < .55 ? A.lunge : 0; p.vel.set(Math.sin(p.face)*lunge, 0, Math.cos(p.face)*lunge);
@@ -3875,18 +3875,27 @@ function refreshMenu(){
   document.querySelectorAll('.cls.hid').forEach(b => { const id = b.dataset.c, open = META.unlocked.includes(id); b.classList.toggle('locked', !open); b.disabled = !open;
     b.querySelector('small').textContent = open ? CLASSES[id].skills.map((k, i) => `${SKEYS[i]} ${SKILLS[k].name}`).join(' · ') + (id === 'necro' ? ' · F 시체 되살리기' : '') : `잠김 · ${CLASSES[CLASSES[id].base].name}으로 히든 전직하면 열린다`;
     b.querySelector('b').textContent = open ? CLASSES[id].name : '???'; });
-  $('bCont').hidden = !loadSave();
+  { const sv = loadSave(); $('bCont').hidden = !sv; if (sv) $('bCont').textContent = `이어하기 · Lv${sv.lv || 1} ${(CLASSES[sv.cls] || CLASSES.sword).name}`; }
   $('saveNote').textContent = CLOUD.ready ? '진행 상황은 계정에 자동 저장된다 (다른 기기에서도 이어하기 가능)' : '진행 상황은 이 브라우저에 자동 저장된다';
 }
-document.querySelectorAll('.cls').forEach(b => b.onclick = () => { if (!b.disabled) startGame(false, b.dataset.c); });
+document.querySelectorAll('.cls').forEach(b => b.onclick = () => { if (b.disabled) return; const sv = loadSave();
+  if (sv && (sv.lv || 1) > 1 && !confirm(`이미 Lv${sv.lv} ${(CLASSES[sv.cls] || CLASSES.sword).name} 세이브가 있다.\n새로 시작하면 그 세이브는 지워진다. 그래도 새로 시작할까?\n(이어서 하려면 취소를 누르고 '이어하기'를 눌러)`)) return;
+  startGame(false, b.dataset.c); });
+// save codes: copy your whole progress as text, paste it on another computer or browser
+function saveCode(){ save(); try { return 'ASH1.' + btoa(unescape(encodeURIComponent(JSON.stringify(S)))); } catch(e){ return ''; } }
+function loadCode(code){ try { const t = (code || '').trim(); if (!t.startsWith('ASH1.')) return false; const d = JSON.parse(decodeURIComponent(escape(atob(t.slice(5))))); if (!d || !d.cls) return false; d.savedAt = Date.now(); localStorage.setItem('ashbough-save', JSON.stringify(d)); return true; } catch(e){ return false; } }
+$('bImport').onclick = () => { const c = prompt('세이브 코드를 붙여 넣어줘 (ASH1.로 시작)'); if (!c) return; if (loadCode(c)){ refreshMenu(); toast('세이브를 불러왔다. 이어하기를 눌러줘', true, 3000); } else toast('세이브 코드가 올바르지 않다', true, 3000); };
+addEventListener('visibilitychange', () => { if (document.hidden && state !== 'menu') save(); });
+addEventListener('pagehide', () => { if (state !== 'menu') save(); });
 $('bCont').onclick = () => startGame(true);
 refreshMenu();
 $('bCloseInv').onclick = closeInv;
 $('bRespawn').onclick = respawn;
 function saveText(){ const t = new Date(S.savedAt || Date.now()); const hm = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
-  return CLOUD.ready ? `${hm}에 저장됨 · 계정에 보관되어 다른 기기에서도 이어할 수 있다. 레벨, 소지품, 장비, 퀘스트, 지도, 히든 전직 진행이 모두 저장된다.` : `${hm}에 저장됨 · 이 브라우저에만 보관된다.`; }
+  return CLOUD.ready ? `${hm}에 저장됨 · 계정에 보관되어 다른 기기에서도 이어할 수 있다. 레벨, 소지품, 장비, 퀘스트, 지도, 히든 전직 진행이 모두 저장된다.` : `${hm}에 저장됨 · 10초마다 자동 저장. 이 브라우저에 보관되고, 다른 컴퓨터로 옮기려면 '세이브 코드 복사'를 써.`; }
 function openPause(){ if (state !== 'play') return; state = 'pause'; $('pause').hidden = false; save(); $('pauseSave').textContent = saveText(); }
 $('bSave').onclick = () => { save(); $('pauseSave').textContent = saveText(); toast('저장했다'); };
+$('bExport').onclick = async () => { const c = saveCode(); try { await navigator.clipboard.writeText(c); toast('세이브 코드를 복사했다. 다른 컴퓨터에서 처음 화면의 "세이브 코드 불러오기"에 붙여 넣으면 된다', true, 4500); } catch(e){ prompt('이 코드를 복사해 둬', c); } };
 function resume(){ $('pause').hidden = true; state = 'play'; }
 $('bResume').onclick = resume;
 $('bMenu').onclick = () => { $('pause').hidden = true; save(); state = 'menu'; showHUD(false); $('menu').hidden = false; refreshMenu(); };
