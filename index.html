@@ -301,7 +301,7 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
       <button class="cls hid" data-c="necro"><b>네크로맨서</b><span>체력 100</span><small>F 시체 되살리기 · Z 영혼 흡수</small></button>
     </div>
     <p class="sub" style="margin:4px 0 6px;font-size:12.5px">직업을 고르면 새로 시작한다. 보라색 칸은 히든 직업이다. 한 번 전직에 성공하면 여기서 바로 고를 수 있다.</p>
-    <p class="sub" id="saveNote" style="margin:0 0 14px;font-size:11.5px"></p><p class="sub" id="verNote" style="margin:-10px 0 12px;font-size:10.5px;opacity:.6">버전 11.05-4</p>
+    <p class="sub" id="saveNote" style="margin:0 0 14px;font-size:11.5px"></p><p class="sub" id="verNote" style="margin:-10px 0 12px;font-size:10.5px;opacity:.6">버전 11.05-5</p>
     <div class="btns"><button class="btn" id="bCont" hidden>이어하기</button><button class="btn ghost" id="bImport">세이브 코드 불러오기</button></div>
     <div class="keys">
       <kbd>WASD</kbd><span>이동</span><kbd>마우스</kbd><span>시점</span>
@@ -3596,7 +3596,7 @@ const NET = {rx:{}, on:false, host:false, client:false, code:'', me:'host', name
   fx(k){ if (!this.on) return; const m = {t:'fx', k, id:this.me}; if (this.host){ this.bcast(m); } else this.sendHost(m); },
   remotes(){ const out = []; for (const a of this.avatars.values()) out.push(a); return out; } };
 let NID = 0;
-const NET_PREFIX = 'ashbough-v1-', GAME_VER = '11.05-4';
+const NET_PREFIX = 'ashbough-v1-', GAME_VER = '11.05-5';
 // what my skills drew this moment, sent in small batches so friends see the same effects
 NET.fxq = []; NET.dmgq = [];
 const V = v => v && v.isVector3 ? [+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(2)] : v;
@@ -3660,7 +3660,7 @@ async function peerJoin(code, onMsg, onClose){ await loadPeer();
     setTimeout(() => { if (!ok){ rej(new Error('timeout')); try { peer.destroy(); } catch(e){} } }, 14000); }); }
 // -------- encoding --------
 const encE = e => [e.nid, e.type, +e.pos.x.toFixed(1), +e.pos.z.toFixed(1), e.mul, Math.round(e.hp), e.dead ? 1 : 0, +e.home.x.toFixed(1), +e.home.z.toFixed(1)];
-function myState(){ return {id:NET.me, n:NET.name, c:S.cls, x:+player.pos.x.toFixed(2), y:+player.pos.y.toFixed(2), z:+player.pos.z.toFixed(2), f:+player.face.toFixed(2), s:player.state, hp:Math.round(S.hp), mh:maxHP(), lv:S.lv, d:player.dead ? 1 : 0, r:player.riding ? 1 : 0}; }
+function myState(){ return {id:NET.me, n:NET.name, c:S.cls, x:+player.pos.x.toFixed(2), y:+player.pos.y.toFixed(2), z:+player.pos.z.toFixed(2), f:+player.face.toFixed(2), s:player.state, hp:Math.round(S.hp), mh:maxHP(), lv:S.lv, d:player.dead ? 1 : 0, r:player.riding ? 1 : 0, al:allies.filter(a => !a.dead).slice(0, 6).map(a => [a.kind === 'light' ? 1 : 0, a.type, +a.pos.x.toFixed(1), +a.pos.z.toFixed(1), +a.yaw.toFixed(2), a.state === 'atk' ? 1 : 0])}; }
 function pickAtk(a){ const o = {}; for (const k of ['mode','dur','at','kind','radius','self','move','mw','chain','track','pre']) if (a[k] !== undefined) o[k] = a[k]; return o; }
 // -------- remote player avatars --------
 function makeAvatar(st){
@@ -3684,7 +3684,7 @@ function netPlayers(list){
     a.st = st; a.tgt.set(st.x, st.y, st.z); a.face = st.f; a.dead = !!st.d; a.seen = elapsed; a.seenMs = performance.now(); }
   if (NET.client) for (const [id, a] of NET.avatars) if (!alive.has(id)) dropAvatar(id);
 }
-function dropAvatar(id){ const a = NET.avatars.get(id); if (!a) return; scene.remove(a.J.root); if (a.mount) scene.remove(a.mount.root); NET.avatars.delete(id); chatLine(`${a.st.n} 님이 나갔다`, 'sys'); }
+function dropAvatar(id){ const a = NET.avatars.get(id); if (!a) return; scene.remove(a.J.root); if (a.mount) scene.remove(a.mount.root); for (const g of a.gal || []) scene.remove(g.R.root); NET.avatars.delete(id); chatLine(`${a.st.n} 님이 나갔다`, 'sys'); }
 function updateAvatars(dt){
   for (const [id, a] of NET.avatars){
     if (NET.host && performance.now() - (a.seenMs || performance.now()) > 120000){ NET.peers.delete(id); dropAvatar(id); continue; }
@@ -3697,6 +3697,16 @@ function updateAvatars(dt){
     if (a.mount){ a.mount.root.visible = !!a.st.r && a.J.root.visible; if (a.st.r){ a.mph = (a.mph || 0) + dt*(spd > .6 ? 7 : 2); const bob = Math.abs(Math.sin(a.mph))*(spd > .6 ? .35 : .05);
         a.mount.root.position.copy(a.pos); a.mount.root.rotation.y = a.J.root.rotation.y; a.mount.body.position.y = .6 + bob; const sq = 1 + (bob < .05 ? .12 : -.06); a.mount.body.scale.set(sq, .8/sq, sq); a.J.root.position.y += 1.0 + bob*1.55; } }
     if (s === 'atk' && a.t < dt*1.5){ const f = a.J.root.rotation.y, c = a.pos.clone().add(v3(Math.sin(f)*1.1, 1.1, Math.cos(f)*1.1)), side = v3(Math.cos(f), 0, -Math.sin(f)); slashFX(c.clone().addScaledVector(side, -.9).add(v3(0,.4,0)), c.clone().addScaledVector(side, .9).add(v3(0,-.3,0)), 0xe8f0ff, .22); }
+    { const list = a.st.al || []; a.gal = a.gal || [];
+      while (a.gal.length > list.length){ const g = a.gal.pop(); scene.remove(g.R.root); }
+      list.forEach((q, i) => { const [light, type, x, z, yaw, atk] = q; let g = a.gal[i];
+        if (g && (g.light !== light || g.type !== type)){ scene.remove(g.R.root); g = null; }
+        if (!g){ const R = light ? makeLightWarrior() : undeadModel(type); scene.add(R.root); g = a.gal[i] = {R, light, type, pos:v3(x, groundH(x, z), z), ph:rand(0, 6), at:0}; spawnAllyFX(g.pos, light ? 0xffe08a : 0x9a4aff); }
+        const ox = g.pos.x, oz = g.pos.z, k = Math.min(1, dt*10); g.pos.x += (x - g.pos.x)*k; g.pos.z += (z - g.pos.z)*k; g.pos.y = groundH(g.pos.x, g.pos.z);
+        const sp = Math.hypot(g.pos.x - ox, g.pos.z - oz)/Math.max(dt, 1e-3); g.R.root.position.copy(g.pos); g.R.root.rotation.y += angDiff(g.R.root.rotation.y, yaw)*k; g.R.root.visible = a.J.root.visible;
+        g.at = atk ? g.at + dt : 0;
+        if (g.R.R){ g.R.anim.phase += dt*sp*1.9; animHumanoid(g.R, atk ? 'eatk' : sp > .6 ? 'run' : 'idle', atk ? Math.min(1, g.at/.8) : sp > .6 ? 0 : elapsed + g.ph, dt, {amt:1}); }
+        else { g.ph += dt*(sp > .6 ? 8 : 3); animBody(g.R, sp > .6 ? 'run' : 'idle', g.ph, atk ? Math.min(1, g.at/.8) : null, dt); } }); }
     if (a.st.r) animHumanoid(a.J, 'ride', elapsed, dt);
     else if (a.dead || s === 'dead') animHumanoid(a.J, 'dead', a.t, dt);
     else if (s === 'atk') animHumanoid(a.J, 'eatk', (a.t % .55)/.55, dt);
@@ -3800,7 +3810,7 @@ function netLeave(msg){
   if (!NET.on) return; const wasClient = NET.client;
   try { if (NET.client) NET.sendHost({t:'bye'}); else NET.bcast({t:'chat', m:'방장이 방을 닫았다'}); } catch(e){}
   try { NET.tr && NET.tr.close(); } catch(e){}
-  for (const id of [...NET.avatars.keys()]){ const a = NET.avatars.get(id); scene.remove(a.J.root); NET.avatars.delete(id); }
+  for (const id of [...NET.avatars.keys()]){ const a = NET.avatars.get(id); scene.remove(a.J.root); if (a.mount) scene.remove(a.mount.root); for (const g of a.gal || []) scene.remove(g.R.root); NET.avatars.delete(id); }
   Object.assign(NET, {on:false, host:false, client:false, tr:null, ready:false, code:'', me:'host'}); NET.peers.clear();
   if (wasClient){ NET.quiet = true; populate(); NET.quiet = false; }
   setNetStatus(msg || '혼자 하기로 돌아왔다'); if (msg) toast(msg, true, 3000); renderNet(); renderNetHud();
