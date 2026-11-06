@@ -301,7 +301,7 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
       <button class="cls hid" data-c="necro"><b>네크로맨서</b><span>체력 100</span><small>F 시체 되살리기 · Z 영혼 흡수</small></button>
     </div>
     <p class="sub" style="margin:4px 0 6px;font-size:12.5px">직업을 고르면 새로 시작한다. 보라색 칸은 히든 직업이다. 한 번 전직에 성공하면 여기서 바로 고를 수 있다.</p>
-    <p class="sub" id="saveNote" style="margin:0 0 14px;font-size:11.5px"></p><p class="sub" id="verNote" style="margin:-10px 0 12px;font-size:10.5px;opacity:.6">버전 11.05-5</p>
+    <p class="sub" id="saveNote" style="margin:0 0 14px;font-size:11.5px"></p><p class="sub" id="verNote" style="margin:-10px 0 12px;font-size:10.5px;opacity:.6">버전 11.06-1</p>
     <div class="btns"><button class="btn" id="bCont" hidden>이어하기</button><button class="btn ghost" id="bImport">세이브 코드 불러오기</button></div>
     <div class="keys">
       <kbd>WASD</kbd><span>이동</span><kbd>마우스</kbd><span>시점</span>
@@ -591,7 +591,7 @@ const erdtree = (() => {
   const leafA = new THREE.MeshBasicMaterial({color:0xffcf58, fog:false}), leafB = new THREE.MeshBasicMaterial({color:0xffe28a, fog:false}), leafC = new THREE.MeshBasicMaterial({color:0xf0b040, fog:false});
   const tube = (pts, r, m, seg=24) => g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), seg, r, 7, false), m));
   for (let k=0;k<7;k++){ const pts = []; for (let i=0;i<=14;i++){ const t = i/14, a = k/7*6.28 + t*2.6, r = lerp(30, 7, Math.pow(t, .7)); pts.push(v3(Math.cos(a)*r, t*200, Math.sin(a)*r)); } tube(pts, lerp(10, 6, k/7), k % 2 ? bark : bark2, 48); }
-  for (let k=0;k<10;k++){ const a = k/10*6.28 + .2, L = rand(70, 105); tube([v3(Math.cos(a)*22, 34, Math.sin(a)*22), v3(Math.cos(a)*L*.55, 10, Math.sin(a)*L*.55), v3(Math.cos(a)*L, 2, Math.sin(a)*L), v3(Math.cos(a)*(L + 20), -6, Math.sin(a)*(L + 20))], rand(3.5, 6), bark2); }
+  for (let k=0;k<10;k++){ const a = k/10*6.28 + .2, L = rand(70, 105); for (let t=40; t<L + 14; t+=6) addCol(ERD.x + Math.cos(a)*t, ERD.z + Math.sin(a)*t, Math.max(2.5, 6 - t/30)); tube([v3(Math.cos(a)*22, 34, Math.sin(a)*22), v3(Math.cos(a)*L*.55, 10, Math.sin(a)*L*.55), v3(Math.cos(a)*L, 2, Math.sin(a)*L), v3(Math.cos(a)*(L + 20), -6, Math.sin(a)*(L + 20))], rand(3.5, 6), bark2); }
   for (let k=0;k<12;k++){ const a = k/12*6.28 + rand(-.2,.2), L = rand(80, 140), h0 = 140 + rand(0, 50); tube([v3(0, h0, 0), v3(Math.cos(a)*L*.45, h0 + 40, Math.sin(a)*L*.45), v3(Math.cos(a)*L, h0 + rand(40, 80), Math.sin(a)*L)], rand(2.5, 4.5), bark); }
   const lg = [new THREE.IcosahedronGeometry(1, 1), new THREE.DodecahedronGeometry(1, 0)];
   for (let k=0;k<70;k++){ const a = rand(0, 6.28), r = Math.pow(Math.random(), .6)*150, m = new THREE.Mesh(lg[k % 2], [leafA, leafB, leafC][k % 3]); m.scale.setScalar(rand(20, 40) * (1 - r/400)); m.position.set(Math.cos(a)*r, 225 + rand(-20, 50) - r*.25, Math.sin(a)*r); m.rotation.set(rand(0,3), rand(0,3), 0); g.add(m); }
@@ -658,7 +658,7 @@ for (const d of DOORS){ const g = new THREE.Group(); g.position.set(d.x, groundH
   const leaf = new THREE.Group(); leaf.position.set(-.75, 0, 0); g.add(leaf); leaf.rotation.y = -1.1; mesh(new THREE.BoxGeometry(1.5, 3, .08), M({color: d.out ? 0xc8b0d8 : 0xb8e0d8, roughness:.6}), .75, 1.5, 0, leaf);
   const light = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 3), new THREE.MeshBasicMaterial({color:0xfff6fb, side:THREE.DoubleSide})); light.position.set(0, 1.5, 0); g.add(light);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex, color:0xffd8f0, blending:THREE.AdditiveBlending, depthWrite:false, transparent:true, opacity:.6})); halo.scale.set(5, 6.5, 1); halo.position.y = 1.6; g.add(halo); d.halo = halo;
-  for (const sx of [-1, 1]){ const q = v3(sx*.9, 0, 0).applyAxisAngle(v3(0,1,0), d.yaw); addCol(d.x + q.x, d.z + q.z, .3); } }
+  for (const sx of [-.9, -.45, 0, .45, .9]){ const q = v3(sx, 0, 0).applyAxisAngle(v3(0,1,0), d.yaw); addCol(d.x + q.x, d.z + q.z, .35); } }
 
 // sites of grace: golden lights to rest at, travel between, and wake up at
 for (const gr of GRACES){ const y = groundH0(gr.x, gr.z), g = new THREE.Group(); g.position.set(gr.x, y, gr.z); scene.add(g); gr.g = g;
@@ -2353,7 +2353,7 @@ function undeadModel(type){
 function spawnAlly(kind, type, pos, opt={}){
   const R = kind === 'light' ? makeLightWarrior() : undeadModel(type); scene.add(R.root);
   const ET = type ? ETYPES[type] : null, I = INT();
-  const baseHp = Math.round((kind === 'light' ? 70 + I*6 : ET.hp*.5 + I*10)*sumMul()), baseAtk = (kind === 'light' ? 6 + I*1.4 : ET.dmg*1.5 + I*1.6)*sumMul();
+  const baseHp = Math.round((kind === 'light' ? 42 + I*3.5 : ET.hp*.28 + I*5)*sumMul()), baseAtk = (kind === 'light' ? 3.8 + I*.8 : ET.dmg*.85 + I*.9)*sumMul();
   const a = {kind, type: type || 'light', R, isRig: !!R.R, pos:pos.clone(), yaw:player.face, hp:baseHp, baseHp, baseAtk, life: kind === 'light' ? 60 : 300, cd:rand(.2,.8), state:'idle', t:0, target:null, buffT:0, dead:false, r: ET ? ET.r : .45, speed: ET ? Math.max(4.6, ET.speed*1.3) : 5.4, range: ET ? Math.min(2.2, ET.range) : 1.8, ph:rand(0,6),
     name: kind === 'light' ? '빛의 전사' : `언데드 ${ET.name}`};
   if (kind === 'undead' && !opt.bone){ const raised = allies.filter(x => x.kind === 'undead' && !x.bone); if (raised.length >= 3){ removeAlly(raised[0], true); toast('되살린 하수인은 최대 3마리 (가장 오래된 하수인이 흩어졌다)'); } }
@@ -2390,7 +2390,7 @@ function updateAllies(dt){
       else if (a.cd <= 0){ a.state = 'atk'; a.at = 0; a.hit = false; a.cd = 1 + rand(0,.3); } }
     else { const idx = allies.indexOf(a), ang = player.face + Math.PI + (idx - (allies.length-1)/2)*.55, tx = player.pos.x + Math.sin(ang)*3.2, tz = player.pos.z + Math.cos(ang)*3.2, dx = tx - a.pos.x, dz = tz - a.pos.z, d = Math.hypot(dx, dz);
       if (d > .8){ const sp = Math.min(a.speed*1.2, d*2.2); const an = Math.atan2(dx, dz); a.yaw += angDiff(a.yaw, an)*Math.min(1, dt*6); vx = Math.sin(an)*sp; vz = Math.cos(an)*sp; mode = 'run'; } else a.yaw += angDiff(a.yaw, player.face)*Math.min(1, dt*3); }
-    a.pos.x += vx*dt; a.pos.z += vz*dt; const q = {x:a.pos.x, z:a.pos.z}; pushOut(q, a.r*.8); a.pos.x = q.x; a.pos.z = q.z;
+    a.pos.x += vx*dt; a.pos.z += vz*dt; const q = {x:a.pos.x, z:a.pos.z}; pushOut(q, a.r*.8); if (q.x > 1500) dConfineFrom(q, a.r*.8, a.lastOk); a.pos.x = q.x; a.pos.z = q.z; if (!a.lastOk) a.lastOk = v3(); a.lastOk.copy(a.pos);
     for (const o of allies){ if (o === a || o.dead) continue; const ox = a.pos.x - o.pos.x, oz = a.pos.z - o.pos.z, od = Math.hypot(ox, oz), m = (a.r + o.r)*.9; if (od < m && od > 1e-3){ a.pos.x += ox/od*(m-od)*.5; a.pos.z += oz/od*(m-od)*.5; } }
     a.pos.y = groundH(a.pos.x, a.pos.z); a.R.root.position.copy(a.pos); a.R.root.rotation.y = a.yaw;
     if (a.isRig){ a.R.anim.phase += dt*Math.hypot(vx, vz)*1.9; animHumanoid(a.R, mode, mode === 'eatk' ? atkT : mode === 'idle' ? elapsed + a.ph : 0, dt, {amt:1}); }
@@ -2973,6 +2973,15 @@ const DZONE = 1500;
 const inDZone = x => x > DZONE;
 function dungeonAt(x, z){ if (!inDZone(x)) return null; let best = null, bd = 1e9; for (const D of DUNGEONS){ const d = Math.abs(z - D.origin.z - 200); if (d < bd){ bd = d; best = D; } } return best; }
 function segD(px, pz, a, b){ const dx = b.x - a.x, dz = b.z - a.z, t = clamp(((px-a.x)*dx + (pz-a.z)*dz)/(dx*dx + dz*dz), 0, 1); return [Math.hypot(px - a.x - dx*t, pz - a.z - dz*t), a.x + dx*t, a.z + dz*t]; }
+function dRegions(D){ return D.regions || (D.regions = [...D.nodes.map(n => ({c:true, x:n.x, z:n.z, R:n.R})), ...D.nodes.slice(0, -1).map((n, i) => ({c:false, a:n, b:D.nodes[i + 1], R:D.w/2}))]); }
+function regV(g, x, z){ if (g.c) return g.R - Math.hypot(x - g.x, z - g.z); return g.R - segD(x, z, g.a, g.b)[0]; }
+function regFix(g, p, r){ let cx, cz; if (g.c){ cx = g.x; cz = g.z; } else { const q = segD(p.x, p.z, g.a, g.b); cx = q[1]; cz = q[2]; } const dx = p.x - cx, dz = p.z - cz, d = Math.hypot(dx, dz) || 1, lim = Math.max(.1, g.R - r); if (d > lim){ p.x = cx + dx/d*lim; p.z = cz + dz/d*lim; } }
+// keep p inside the rooms and tunnels that the previous position was already in: a push can't carry it through a wall into the next room
+function dConfineFrom(p, r, prev){ const D = dungeonAt(p.x, p.z); if (!D) return; const regs = dRegions(D);
+  const home = prev && prev.x > 1500 ? regs.filter(g => regV(g, prev.x, prev.z) >= r - .35) : [];
+  if (!home.length){ dConfine(p, r); return; }
+  if (home.some(g => regV(g, p.x, p.z) >= r)) return;
+  let best = home[0], bv = -1e9; for (const g of home){ const v = regV(g, p.x, p.z); if (v > bv){ bv = v; best = g; } } regFix(best, p, r); }
 function dConfine(p, r){
   const D = dungeonAt(p.x, p.z); if (!D) return;
   let best = -1e9, fix = null;
@@ -2992,7 +3001,7 @@ function buildDungeon(D){
     const f = new THREE.Mesh(new THREE.PlaneGeometry(D.w + 4, L), fm); f.rotation.set(-Math.PI/2, 0, -ang); f.position.set((A.x + B.x)/2, .005, (A.z + B.z)/2); f.receiveShadow = true; g.add(f);
     const nx = Math.cos(ang), nz = -Math.sin(ang);
     for (let t = 0; t <= L; t += 2.2){ const px = A.x + Math.sin(ang)*t, pz = A.z + Math.cos(ang)*t;
-      for (const sd of [-1,1]){ const wx = px + nx*sd*(D.w/2 + 1.4), wz = pz + nz*sd*(D.w/2 + 1.4); if (D.nodes.some(n => Math.hypot(wx - n.x, wz - n.z) < n.R + .8)) continue; rocks.push([wx, wz, rand(1.4, 2.4)]); } }
+      for (const sd of [-1,1]){ const rs = rand(1.4, 2.4), wx = px + nx*sd*(D.w/2 + rs*.95), wz = pz + nz*sd*(D.w/2 + rs*.95); if (D.nodes.some(n => Math.hypot(wx - n.x, wz - n.z) < n.R + rs*.6)) continue; rocks.push([wx, wz, rs]); } }
     if (D.theme === 'mine') for (let t = 4; t < L - 2; t += 7){ const px = A.x + Math.sin(ang)*t, pz = A.z + Math.cos(ang)*t, bg = new THREE.Group(); bg.position.set(px, 0, pz); bg.rotation.y = ang; g.add(bg);
       for (const sd of [-1,1]) mesh(new THREE.BoxGeometry(.3, 4, .3), woodM, sd*(D.w/2 - .2), 2, 0, bg); mesh(new THREE.BoxGeometry(D.w, .35, .35), woodM, 0, 4, 0, bg);
       const lan = mesh(new THREE.BoxGeometry(.2,.3,.2), M({color:0xffc060, emissive:0xff9a30, emissiveIntensity:2}), D.w/2 - .5, 3.3, .3, bg);
@@ -3002,7 +3011,7 @@ function buildDungeon(D){
   for (const n of D.nodes){ const exits = [];
     for (const m of [D.nodes[n.i - 1], D.nodes[n.i + 1]]) if (m) exits.push(Math.atan2(m.x - n.x, m.z - n.z));
     const cnt = Math.round(n.R*2.6);
-    for (let k=0;k<cnt;k++){ const a2 = k/cnt*6.28; if (exits.some(e => Math.abs(angDiff(a2, e)) < (D.w/2 + 1.2)/n.R)) continue; rocks.push([n.x + Math.sin(a2)*(n.R + 1.4), n.z + Math.cos(a2)*(n.R + 1.4), rand(1.6, 2.8)]); }
+    for (let k=0;k<cnt;k++){ const a2 = k/cnt*6.28; if (exits.some(e => Math.abs(angDiff(a2, e)) < (D.w/2 + .2)/n.R)) continue; const rs = rand(1.6, 2.8); rocks.push([n.x + Math.sin(a2)*(n.R + rs*.95), n.z + Math.cos(a2)*(n.R + rs*.95), rs]); }
     // details: glowing crystals / bones / crates
     for (let k=0;k<4;k++){ const a2 = rand(0, 6.28), r2 = rand(n.R*.5, n.R*.9), px = n.x + Math.sin(a2)*r2, pz = n.z + Math.cos(a2)*r2;
       if (D.theme === 'mine') mesh(new THREE.BoxGeometry(.8,.7,.8), woodM, px, .35, pz).rotation.y = rand(0,3);
@@ -3017,6 +3026,7 @@ function buildDungeon(D){
   // the overworld entrance: a rock mound with a dark mouth and a sign
   const ey = groundH(D.ent.x, D.ent.z), eg = new THREE.Group(); eg.position.set(D.ent.x, ey, D.ent.z); eg.rotation.y = Math.atan2(-D.ent.x, -D.ent.z); scene.add(eg);
   const mound = mesh(new THREE.DodecahedronGeometry(6, 1), flat({color:0x4a4640}), 0, 1.2, -3, eg); mound.scale.set(1.4, .9, 1);
+  for (const [lx, lz, lr] of [[0, -3.4, 5.6], [-4.6, -3, 4], [4.6, -3, 4]]){ const q = v3(lx, 0, lz).applyAxisAngle(v3(0,1,0), eg.rotation.y).add(D.ent); addCol(q.x, q.z, lr); }
   const mouth = mesh(new THREE.CircleGeometry(2.4, 20, 0, Math.PI), new THREE.MeshBasicMaterial({color:0x020101}), 0, .05, 2.3, eg);
   if (D.theme === 'mine'){ for (const sd of [-1,1]) mesh(new THREE.BoxGeometry(.35,4,.35), woodM, sd*2.4, 2, 2.4, eg); mesh(new THREE.BoxGeometry(5.4,.4,.4), woodM, 0, 4, 2.4, eg); }
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.6, .9), new THREE.MeshBasicMaterial({map:signTex(D.name), side:THREE.DoubleSide})); sign.position.set(0, 5.2, 2.6); eg.add(sign);
@@ -3048,7 +3058,7 @@ function nearDungeonDoor(){
   return null;
 }
 function enterDungeon(D){
-  const n0 = D.nodes[0]; player.pos.set(n0.x, 0, n0.z - 2); player.vel.set(0,0,0); player.face = 0; camYaw = Math.PI; player.dungeon = D; caveK = 1;
+  const n0 = D.nodes[0]; player.pos.set(n0.x, 0, n0.z - 2); player.vel.set(0,0,0); player.lastOk = player.pos.clone(); player.face = 0; camYaw = Math.PI; player.dungeon = D; caveK = 1;
   for (const a of allies) a.pos.copy(player.pos).add(v3(rand(-2,2), 0, rand(-3,-1)));
   sfx.roll(); tone(120, 60, .8, .2, 'sine'); toast(`${D.name} — 가장 깊은 곳에 ${ETYPES[D.boss].name}이(가) 있다`, true, 3500);
 }
@@ -3173,6 +3183,7 @@ function updatePlayer(dt){
   if (p.state !== 'idle' && p.state !== 'block' && p.state !== 'atk' && p.state !== 'roll' && p.state !== 'skill') p.vel.multiplyScalar(Math.max(0, 1 - dt*6));
   pushOut(p.pos, .45);
   for (const e of enemies){ if (e.dead) continue; const dx = p.pos.x-e.pos.x, dz = p.pos.z-e.pos.z, d = Math.hypot(dx,dz), m = e.T.r + .4; if (d < m && d > 1e-3 && p.state !== 'roll'){ p.pos.x = e.pos.x + dx/d*m; p.pos.z = e.pos.z + dz/d*m; } }
+  if (p.pos.x > 1500){ dConfineFrom(p.pos, .45, p.lastOk); } if (!p.lastOk) p.lastOk = v3(); p.lastOk.copy(p.pos);
   p.pos.y = groundH(p.pos.x, p.pos.z);
   if (p.state !== 'skill'){ p.hop = 0; p.spin = 0; }
   P.root.position.copy(p.pos); P.root.position.y += p.hop || 0; P.root.rotation.y = p.face + (p.spin || 0);
@@ -3256,6 +3267,7 @@ function updateEnemies(dt){
     e.pos.x += vx*dt; e.pos.z += vz*dt; const pp = {x:e.pos.x, z:e.pos.z}; pushOut(pp, T.r*.8); e.pos.x = pp.x; e.pos.z = pp.z;
     for (const o of enemies){ if (o === e || o.dead) continue; const ox = e.pos.x-o.pos.x, oz = e.pos.z-o.pos.z, od = Math.hypot(ox,oz), m = (e.T.r + o.T.r)*.9; if (od < m && od > 1e-3){ e.pos.x += ox/od*(m-od)*.5; e.pos.z += oz/od*(m-od)*.5; } }
     { const dv = Math.hypot(e.pos.x, e.pos.z), lim = FENCE_R + 1.5 + T.r; if (dv < lim){ e.pos.x *= lim/dv; e.pos.z *= lim/dv; } }   // the village ward
+    if (e.pos.x > 1500){ dConfineFrom(e.pos, T.r*.8, e.lastOk); } if (!e.lastOk) e.lastOk = v3(); e.lastOk.copy(e.pos);
     if (e.aggro && !e.tg?.ally && Math.hypot(e.tg.pos.x, e.tg.pos.z) < FENCE_R){ e.aggro = false; if (e.state !== 'atk') e.state = 'return'; }
     enemyVisuals(e, mode, Math.hypot(vx, vz), dt);
   }
@@ -3400,7 +3412,8 @@ function updateCamera(dt){
   // keep the camera out of houses: pull it in along the boom until it is clear
   for (let k=1;k<=14;k++){ const t = k/14, px = lerp(head.x, want.x, t), pz = lerp(head.z, want.z, t), py = lerp(head.y, want.y, t);
     if (HOUSES.some(h => py < VILLAGE.h + 6.2 && Math.hypot(px - h.x, pz - h.z) < Math.max(h.w, h.d)*.62)){ want.lerpVectors(head, want, Math.max(.15, (k-1.5)/14)); break; } }
-  if (player.dungeon){ const q = {x:want.x, z:want.z}; dConfine(q, .6); if (Math.hypot(q.x - want.x, q.z - want.z) > .01){ want.x = q.x; want.z = q.z; } }
+  if (player.dungeon){ const regs = dRegions(player.dungeon), home = regs.filter(g => regV(g, head.x, head.z) >= .3);
+    if (home.length) for (let k=1;k<=16;k++){ const t = k/16, px = lerp(head.x, want.x, t), pz = lerp(head.z, want.z, t); if (!home.some(g => regV(g, px, pz) >= .7)){ want.lerpVectors(head, want, Math.max(.12, (k - 1)/16)); break; } } }
   const gh = groundH(want.x, want.z) + .5; if (want.y < gh) want.y = gh;
   camPos.lerp(want, Math.min(1, dt*14)); camLook.lerp(head.clone().addScaledVector(right, .55), Math.min(1, dt*18));
   camera.position.copy(camPos); camera.lookAt(camLook);
@@ -3596,7 +3609,7 @@ const NET = {rx:{}, on:false, host:false, client:false, code:'', me:'host', name
   fx(k){ if (!this.on) return; const m = {t:'fx', k, id:this.me}; if (this.host){ this.bcast(m); } else this.sendHost(m); },
   remotes(){ const out = []; for (const a of this.avatars.values()) out.push(a); return out; } };
 let NID = 0;
-const NET_PREFIX = 'ashbough-v1-', GAME_VER = '11.05-5';
+const NET_PREFIX = 'ashbough-v1-', GAME_VER = '11.06-1';
 // what my skills drew this moment, sent in small batches so friends see the same effects
 NET.fxq = []; NET.dmgq = [];
 const V = v => v && v.isVector3 ? [+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(2)] : v;
@@ -3946,7 +3959,7 @@ function tick(){
   renderer.render(scene, camera);
 }
 tick();
-window.__G = {get S(){ return S; }, projs, particles, netReplay, swordPivot, setBowDraw, axeHead, updateHiddenFX, NET, netCreate, netJoin, openNet, netTick, updatePuppets, updateEnv, updateGraces, GRACES, get state(){ return state; }, hazards, bossMove, allies, maxHP, renderInv, player, enemies, P, startGame, startAttack, tryCast, tryRoll, ATK, animHumanoid, camera, renderer, scene, updatePlayer, updateEnemies, updateCamera, get camYaw(){ return camYaw; }, set camYaw(v){ camYaw = v; }, set camPitch(v){ camPitch = v; }, set camDist(v){ camDist = v; }, spawn, populate, interact, elder, keys, setState:v => state = v, damageEnemy, updateHUD, drawMini, openInv, renderInv, hurtPlayer, applyGear, shield, blankPose, applyPose, shieldUpright, fireDmg:()=>fireDmg(), loot, useSkill, allies, advance, tryHidden, LANDMARKS, DUNGEONS, ETYPES, groundH, toggleRide, CLASSES, HIDDEN, updateAllies, updateProjectiles, updateParticles, step:(n,dt=1/30)=>{ for(let i=0;i<n;i++){ updatePlayer(dt); updateEnemies(dt); updateAllies(dt); updateProjectiles(dt); updateParticles(dt); } }};
+window.__G = {get S(){ return S; }, enterDungeon, dRegions, regV, projs, particles, netReplay, swordPivot, setBowDraw, axeHead, updateHiddenFX, NET, netCreate, netJoin, openNet, netTick, updatePuppets, updateEnv, updateGraces, GRACES, get state(){ return state; }, hazards, bossMove, allies, maxHP, renderInv, player, enemies, P, startGame, startAttack, tryCast, tryRoll, ATK, animHumanoid, camera, renderer, scene, updatePlayer, updateEnemies, updateCamera, get camYaw(){ return camYaw; }, set camYaw(v){ camYaw = v; }, set camPitch(v){ camPitch = v; }, set camDist(v){ camDist = v; }, spawn, populate, interact, elder, keys, setState:v => state = v, damageEnemy, updateHUD, drawMini, openInv, renderInv, hurtPlayer, applyGear, shield, blankPose, applyPose, shieldUpright, fireDmg:()=>fireDmg(), loot, useSkill, allies, advance, tryHidden, LANDMARKS, DUNGEONS, ETYPES, groundH, toggleRide, CLASSES, HIDDEN, updateAllies, updateProjectiles, updateParticles, step:(n,dt=1/30)=>{ for(let i=0;i<n;i++){ updatePlayer(dt); updateEnemies(dt); updateAllies(dt); updateProjectiles(dt); updateParticles(dt); } }};
 })();
 </script>
 
